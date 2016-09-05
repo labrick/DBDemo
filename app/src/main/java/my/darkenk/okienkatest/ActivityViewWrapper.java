@@ -46,9 +46,11 @@ public class ActivityViewWrapper {
 
     public ActivityViewWrapper(Context ctx) {
         try {
+            // Returns the Class object associated with the class or interface with the given string name.
             Class<?> clazz = Class.forName("android.app.ActivityView");
             mDefaultCtor = clazz.getConstructor(Context.class);
             mActivityView = (View)mDefaultCtor.newInstance(ctx);
+            // Returns a Method object that reflects the specified public member method of the class or interface represented by this Class object.
             mStartActivityMethod = clazz.getMethod("startActivity", Intent.class);
         } catch (Exception e) {
             Log.e(TAG, "ActivityViewWrapper failed " + e);

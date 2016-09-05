@@ -48,8 +48,10 @@ public class Okienko extends RelativeLayout {
      * @param root parent of component
      * @param intent activity to start in Okienko
      */
+    // context（本应用）调用intent（要打开的应用），将该layout（要打开的应用）挂载在root（哪个布局下，可以在不同的屏下）下
     public Okienko(Context context, ViewGroup root, final Intent intent) {
         super(context);
+        // LayoutInflater是用来找layout下xml布局文件
         LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
         mWindow = (ViewGroup)inflater.inflate(R.layout.okienko_layout, root).findViewById(R.id.okienko_root);
         mWindow.setId(View.generateViewId());

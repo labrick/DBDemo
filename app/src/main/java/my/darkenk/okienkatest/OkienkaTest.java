@@ -71,29 +71,31 @@ public class OkienkaTest extends Activity {
         setTitle(R.string.app_long_name);
         setContentView(R.layout.okienko);
         mDesktop = (ViewGroup)findViewById(R.id.activity_view);
-        mMediaRouter = (MediaRouter)getSystemService(Context.MEDIA_ROUTER_SERVICE);
-        mDisplayManager = (DisplayManager)getSystemService(Context.DISPLAY_SERVICE);
+        mMediaRouter = (MediaRouter)getSystemService(Context.MEDIA_ROUTER_SERVICE);         // 控制和管理路由的媒体服务
+        mDisplayManager = (DisplayManager)getSystemService(Context.DISPLAY_SERVICE);        // 与显示设备交互服务
+
         // List of the available displays
         while (true) {
-            Display display = mDisplayManager.getDisplay(mTotalDisplays);
+            Display display = mDisplayManager.getDisplay(mTotalDisplays);   // Gets information about a logical display.
             if (display == null)
                 break;
             mTotalDisplays++;
             Log.v(TAG, "Found display " + display);
         }
-//        mSecondaryTouch = SystemProperties.get("persist.secondary.touch", "none");
+//      mSecondaryTouch = SystemProperties.get("persist.secondary.touch", "none");
         mSecondaryTouch = System.getProperty("persist.secondary.touch", "none");
     }
 
+    // 获得所有应用并加入菜单栏
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         Intent filter = new Intent(Intent.ACTION_MAIN, null);
         filter.addCategory(Intent.CATEGORY_LAUNCHER);
-        List<ResolveInfo> resolveInfoList = getPackageManager().queryIntentActivities(filter, 0);
+        List<ResolveInfo> resolveInfoList = getPackageManager().queryIntentActivities(filter, 0);   // Retrieve all activities that can be performed for the given intent.
         for (ResolveInfo resolveInfo : resolveInfoList) {
             ApplicationInfo ai = resolveInfo.activityInfo.applicationInfo;
             MenuItem mi = menu.add(ai.loadLabel(getPackageManager()));
-            mi.setIntent(getPackageManager().getLaunchIntentForPackage(ai.packageName));
+            mi.setIntent(getPackageManager().getLaunchIntentForPackage(ai.packageName));          // Change the Intent associated with this item.
         }
         return super.onCreateOptionsMenu(menu);
     }
@@ -101,7 +103,7 @@ public class OkienkaTest extends Activity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (mCount == 0) {
-            Log.v(TAG, "Primary display: " + item.getIntent());
+            Log.v(TAG, "Primary display: " + item.getIntent());     // 上面已经setIntent，这里getIntent获取包名
             mPrimaryApp = new Okienko(OkienkaTest.this, mDesktop, item.getIntent());
         } else if ((mCount == 1) && (mTotalDisplays >= 2)) {
             Log.v(TAG, "Secondary display: " + item.getIntent());
