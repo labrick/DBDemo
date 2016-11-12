@@ -29,10 +29,12 @@
  */
 package my.darkenk.okienkatest;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.ResolveInfo;
 import android.hardware.display.DisplayManager;
@@ -46,6 +48,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
 
 import java.util.List;
@@ -64,11 +67,13 @@ public class OkienkaTest extends Activity {
     private int mTotalDisplays = 0;
     private float mScaleX, mScaleY;
     private String mSecondaryTouch;
+    ActionBar actionBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setTitle(R.string.app_long_name);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);//横屏
         setContentView(R.layout.okienko);
         mDesktop = (ViewGroup)findViewById(R.id.activity_view);
         mMediaRouter = (MediaRouter)getSystemService(Context.MEDIA_ROUTER_SERVICE);         // 控制和管理路由的媒体服务
@@ -84,6 +89,11 @@ public class OkienkaTest extends Activity {
         }
 //      mSecondaryTouch = SystemProperties.get("persist.secondary.touch", "none");
         mSecondaryTouch = System.getProperty("persist.secondary.touch", "none");
+      //  getSupportActionBar().hide();
+        //this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+       // actionBar =getActionBar();  
+        //actionBar.hide();  
+
     }
 
     // 获得所有应用并加入菜单栏
@@ -91,6 +101,7 @@ public class OkienkaTest extends Activity {
     public boolean onCreateOptionsMenu(Menu menu) {
         Intent filter = new Intent(Intent.ACTION_MAIN, null);
         filter.addCategory(Intent.CATEGORY_LAUNCHER);
+
         List<ResolveInfo> resolveInfoList = getPackageManager().queryIntentActivities(filter, 0);   // Retrieve all activities that can be performed for the given intent.
         for (ResolveInfo resolveInfo : resolveInfoList) {
             ApplicationInfo ai = resolveInfo.activityInfo.applicationInfo;
@@ -102,6 +113,7 @@ public class OkienkaTest extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Log.d(TAG, "onOptionsItemSelected: "+mCount);
         if (mCount == 0) {
             Log.v(TAG, "Primary display: " + item.getIntent());     // 上面已经setIntent，这里getIntent获取包名
             mPrimaryApp = new Okienko(OkienkaTest.this, mDesktop, item.getIntent());
@@ -113,7 +125,12 @@ public class OkienkaTest extends Activity {
                 mDisplayManager.getDisplay(0).getWidth();
             mScaleY = (float)mDisplayManager.getDisplay(1).getHeight() /
                 mDisplayManager.getDisplay(0).getHeight();
-        } else {
+
+            Log.d(TAG, "onOptionsItemSelected11: ");
+            actionBar=getActionBar();
+            actionBar.hide();
+        }
+        else {
             Log.v(TAG, "Discard: " + item.getIntent());
         }
         mCount++;
