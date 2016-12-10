@@ -51,7 +51,9 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class OkienkaTest extends Activity {
 
@@ -88,14 +90,39 @@ public class OkienkaTest extends Activity {
             Log.v(TAG, "Found display " + display);
         }
 //      mSecondaryTouch = SystemProperties.get("persist.secondary.touch", "none");
-        mSecondaryTouch = System.getProperty("persist.secondary.touch", "none");
+        mSecondaryTouch = System.getProperty("persist.secondary.touch", "ft5x06");
+        Log.d(TAG, "onCreate: "+mSecondaryTouch);
       //  getSupportActionBar().hide();
         //this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
        // actionBar =getActionBar();  
         //actionBar.hide();  
 
+        /*
+         * 隐藏运行Android 4.xxx系统的平板的屏幕下方的状态栏需要root权限
+         */
+      //  closeBar();
     }
-
+    /**
+     * 关闭Android导航栏，实现全屏
+     */
+    private void closeBar() {
+        try {
+            String command;
+            command = "LD_LIBRARY_PATH=/vendor/lib:/system/lib service call activity 42 s16 com.android.systemui";
+            ArrayList<String> envlist = new ArrayList<String>();
+            Map<String, String> env = System.getenv();
+            for (String envName : env.keySet()) {
+                envlist.add(envName + "=" + env.get(envName));
+            }
+            String[] envp = envlist.toArray(new String[0]);
+            Process proc = Runtime.getRuntime().exec(
+                    new String[] { "su", "-c", command }, envp);
+            proc.waitFor();
+        } catch (Exception ex) {
+            // Toast.makeText(getApplicationContext(), ex.getMessage(),
+            // Toast.LENGTH_LONG).show();
+        }
+    }
     // 获得所有应用并加入菜单栏
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -123,8 +150,12 @@ public class OkienkaTest extends Activity {
             // Compute secondary input device scaling factor
             mScaleX = (float)mDisplayManager.getDisplay(1).getWidth() /
                 mDisplayManager.getDisplay(0).getWidth();
+
+            Log.d(TAG, "onOptionsItemSelected: width:"+mDisplayManager.getDisplay(0).getWidth()+"high:"+mDisplayManager.getDisplay(0).getHeight());
             mScaleY = (float)mDisplayManager.getDisplay(1).getHeight() /
                 mDisplayManager.getDisplay(0).getHeight();
+
+            Log.d(TAG, "onOptionsItemSelected: width:"+mDisplayManager.getDisplay(1).getWidth()+"high:"+mDisplayManager.getDisplay(1).getHeight());
 
             Log.d(TAG, "onOptionsItemSelected11: ");
             actionBar=getActionBar();
@@ -142,9 +173,12 @@ public class OkienkaTest extends Activity {
         if (!mSecondaryTouch.equals("none")) {
             if ((mSecondaryApp != null) && (event.getDevice().getName().equals(mSecondaryTouch))) {
                 // Scale resolution from primary to secondary display
+                Log.d(TAG, "dispatchTouchEvent: 1234");
                 float x, y;
-                x = event.getX() * mScaleX;
+                 x = event.getX() * mScaleX;
+                Log.d(TAG, "dispatchTouchEvent: x="+x+"mscalex:"+mScaleX+"getX"+event.getX());
                 y = event.getY() * mScaleY;
+                Log.d(TAG, "dispatchTouchEvent: y="+x+"mscaley:"+mScaleY+"getY"+event.getY());
                 event.setLocation(x, y);
                 return mSecondaryApp.getView().dispatchTouchEvent(event);
             }
