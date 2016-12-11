@@ -31,6 +31,7 @@ package my.darkenk.okienkatest;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -47,13 +48,18 @@ import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ExecutionException;
 
 public class OkienkaTest extends Activity {
 
@@ -71,6 +77,9 @@ public class OkienkaTest extends Activity {
     private String mSecondaryTouch;
     ActionBar actionBar;
 
+    Button button = null;
+    Button button1 = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,7 +90,7 @@ public class OkienkaTest extends Activity {
         mMediaRouter = (MediaRouter)getSystemService(Context.MEDIA_ROUTER_SERVICE);         // 控制和管理路由的媒体服务
         mDisplayManager = (DisplayManager)getSystemService(Context.DISPLAY_SERVICE);        // 与显示设备交互服务
 
-        // List of the available displays
+//         List of the available displays
         while (true) {
             Display display = mDisplayManager.getDisplay(mTotalDisplays);   // Gets information about a logical display.
             if (display == null)
@@ -89,98 +98,63 @@ public class OkienkaTest extends Activity {
             mTotalDisplays++;
             Log.v(TAG, "Found display " + display);
         }
-//      mSecondaryTouch = SystemProperties.get("persist.secondary.touch", "none");
         mSecondaryTouch = System.getProperty("persist.secondary.touch", "ft5x06");
         Log.d(TAG, "onCreate: "+mSecondaryTouch);
-      //  getSupportActionBar().hide();
-        //this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-       // actionBar =getActionBar();  
-        //actionBar.hide();  
 
-        /*
-         * 隐藏运行Android 4.xxx系统的平板的屏幕下方的状态栏需要root权限
-         */
-      //  closeBar();
-    }
-    /**
-     * 关闭Android导航栏，实现全屏
-     */
-    private void closeBar() {
-        try {
-            String command;
-            command = "LD_LIBRARY_PATH=/vendor/lib:/system/lib service call activity 42 s16 com.android.systemui";
-            ArrayList<String> envlist = new ArrayList<String>();
-            Map<String, String> env = System.getenv();
-            for (String envName : env.keySet()) {
-                envlist.add(envName + "=" + env.get(envName));
+        button = (Button)findViewById(R.id.button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+//                Intent intent = new Intent(OkienkaTest.this, MainActivity.class);
+//                startActivity(intent);
+                Intent tIntent = new Intent(OkienkaTest.this, MainActivity.class);
+                Log.v(TAG, "Primary display add " + tIntent.toString());
+                mPrimaryApp = new Okienko(OkienkaTest.this, mDesktop, tIntent);
+                Log.d(TAG, "onCreate: "+mPrimaryApp);
             }
-            String[] envp = envlist.toArray(new String[0]);
-            Process proc = Runtime.getRuntime().exec(
-                    new String[] { "su", "-c", command }, envp);
-            proc.waitFor();
-        } catch (Exception ex) {
-            // Toast.makeText(getApplicationContext(), ex.getMessage(),
-            // Toast.LENGTH_LONG).show();
-        }
+        });
+        button1 = (Button)findViewById(R.id.button2);
+        button1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent tIntent = new Intent();
+                ComponentName tComp = new ComponentName("com.brick.robotctrl", "com.brick.robotctrl.MainActivity");
+                tIntent.setComponent(tComp);
+//                Intent tIntent = new Intent(OkienkaTest.this, MainActivity.class);
+//                Log.v(TAG, "secondary display add " + tIntent.toString());
+                mSecondaryApp = mPresentation.setApp(tIntent);
+                Log.d(TAG, "onResume: mSecondaryApp" + mSecondaryApp.toString());
+            }
+        });
+//        Timer timer = new Timer(true);
+//        timer.schedule(queryTask, 2000, 2000);
     }
-    // 获得所有应用并加入菜单栏
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        Intent filter = new Intent(Intent.ACTION_MAIN, null);
-        filter.addCategory(Intent.CATEGORY_LAUNCHER);
-
-        List<ResolveInfo> resolveInfoList = getPackageManager().queryIntentActivities(filter, 0);   // Retrieve all activities that can be performed for the given intent.
-        for (ResolveInfo resolveInfo : resolveInfoList) {
-            ApplicationInfo ai = resolveInfo.activityInfo.applicationInfo;
-            MenuItem mi = menu.add(ai.loadLabel(getPackageManager()));
-            mi.setIntent(getPackageManager().getLaunchIntentForPackage(ai.packageName));          // Change the Intent associated with this item.
-        }
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        Log.d(TAG, "onOptionsItemSelected: "+mCount);
-        if (mCount == 0) {
-            Log.v(TAG, "Primary display: " + item.getIntent());     // 上面已经setIntent，这里getIntent获取包名
-            mPrimaryApp = new Okienko(OkienkaTest.this, mDesktop, item.getIntent());
-        } else if ((mCount == 1) && (mTotalDisplays >= 2)) {
-            Log.v(TAG, "Secondary display: " + item.getIntent());
-            mSecondaryApp = mPresentation.setApp(item.getIntent());
-            // Compute secondary input device scaling factor
-            mScaleX = (float)mDisplayManager.getDisplay(1).getWidth() /
-                mDisplayManager.getDisplay(0).getWidth();
-
-            Log.d(TAG, "onOptionsItemSelected: width:"+mDisplayManager.getDisplay(0).getWidth()+"high:"+mDisplayManager.getDisplay(0).getHeight());
-            mScaleY = (float)mDisplayManager.getDisplay(1).getHeight() /
-                mDisplayManager.getDisplay(0).getHeight();
-
-            Log.d(TAG, "onOptionsItemSelected: width:"+mDisplayManager.getDisplay(1).getWidth()+"high:"+mDisplayManager.getDisplay(1).getHeight());
-
-            Log.d(TAG, "onOptionsItemSelected11: ");
-            actionBar=getActionBar();
-            actionBar.hide();
-        }
-        else {
-            Log.v(TAG, "Discard: " + item.getIntent());
-        }
-        mCount++;
-        return true;
-    }
+//    TimerTask queryTask = new TimerTask() {
+//        @Override
+//        public void run() {
+////            Intent tIntent = new Intent();
+////            ComponentName tComp = new ComponentName("com.brick.robotctrl", "com.brick.robotctrl.MainActivity");
+////            tIntent.setComponent(tComp);
+//                Intent tIntent = new Intent(OkienkaTest.this, MainActivity.class);
+//                Log.v(TAG, "secondary display add " + tIntent.toString());
+//            mSecondaryApp = mPresentation.setApp(tIntent);
+//            Log.d(TAG, "onResume: mSecondaryApp" + mSecondaryApp.toString());
+//        }
+//    };
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
         if (!mSecondaryTouch.equals("none")) {
             if ((mSecondaryApp != null) && (event.getDevice().getName().equals(mSecondaryTouch))) {
                 // Scale resolution from primary to secondary display
-                Log.d(TAG, "dispatchTouchEvent: 1234");
-                float x, y;
-                 x = event.getX() * mScaleX;
-                Log.d(TAG, "dispatchTouchEvent: x="+x+"mscalex:"+mScaleX+"getX"+event.getX());
-                y = event.getY() * mScaleY;
-                Log.d(TAG, "dispatchTouchEvent: y="+x+"mscaley:"+mScaleY+"getY"+event.getY());
-                event.setLocation(x, y);
-                return mSecondaryApp.getView().dispatchTouchEvent(event);
+//                Log.d(TAG, "dispatchTouchEvent: 1234");
+//                float x, y;
+//                 x = event.getX();
+//                Log.d(TAG, "dispatchTouchEvent: x="+x+"mscalex:"+mScaleX+"getX"+event.getX());
+//                y = event.getY();
+//                Log.d(TAG, "dispatchTouchEvent: y="+y+"mscaley:"+mScaleY+"getY"+event.getY());
+              //  event.setLocation(x, y);
+//                return mSecondaryApp.getView().dispatchTouchEvent(event);
             }
         }
         return super.dispatchTouchEvent(event);
@@ -252,6 +226,22 @@ public class OkienkaTest extends Activity {
         mMediaRouter.addCallback(MediaRouter.ROUTE_TYPE_LIVE_VIDEO, mMediaRouterCallback);
         // Update the displays based on the currently active routes
         updatePresentation();
+
+//        Intent tIntent = new Intent();
+//        ComponentName tComp = new ComponentName("com.brick.robotctrl", "com.brick.robotctrl.MainActivity");
+//        tIntent.setComponent(tComp);
+//        Intent tIntent = new Intent(OkienkaTest.this, MainActivity.class);
+//        Log.v(TAG, "secondary display add " + tIntent.toString());
+//        mSecondaryApp = mPresentation.setApp(tIntent);
+//        Log.d(TAG, "onResume: mSecondaryApp" + mSecondaryApp.toString());
+//        mSecondaryApp = mPresentation.setApp(tIntent);
+//        Log.d(TAG, "onResume: mSecondaryApp" + mSecondaryApp.toString());
+//        Intent tIntent = new Intent();
+//        ComponentName tComp = new ComponentName("com.brick.robotctrl", "com.brick.robotctrl.MainActivity");
+//        tIntent.setComponent(tComp);
+        //Log.v(TAG, "Primary display add" + tIntent.toString());
+        button.callOnClick();
+        button1.performClick();
     }
 
     @Override

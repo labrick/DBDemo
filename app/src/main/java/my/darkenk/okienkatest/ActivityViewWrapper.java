@@ -59,6 +59,7 @@ public class ActivityViewWrapper {
 
     public void startActivity(Intent intent) {
         try {
+            Log.d(TAG, "startActivity: intent:" + intent);
             mStartActivityMethod.invoke(mActivityView, intent);
         } catch (Exception e) {
             Log.e(TAG, "ActivityViewWrapper failed startActivity " + e);
