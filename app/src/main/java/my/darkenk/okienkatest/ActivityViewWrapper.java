@@ -47,11 +47,17 @@ public class ActivityViewWrapper {
     public ActivityViewWrapper(Context ctx) {
         try {
             // Returns the Class object associated with the class or interface with the given string name.
+            // 加载类，默认会执行初始化块
             Class<?> clazz = Class.forName("android.app.ActivityView");
+            Log.d(TAG, "ActivityViewWrapper: clazz: " + clazz.toString());
+            // java.lang.Class.getConstructor() 方法返回一个Constructor对象，它反映此Class对象所表示的类的指定公共构造。
             mDefaultCtor = clazz.getConstructor(Context.class);
+            Log.d(TAG, "ActivityViewWrapper: mDefaultCtor: " + mDefaultCtor.toString());
             mActivityView = (View)mDefaultCtor.newInstance(ctx);
+            Log.d(TAG, "ActivityViewWrapper: mActivityView: " + mActivityView.toString());
             // Returns a Method object that reflects the specified public member method of the class or interface represented by this Class object.
             mStartActivityMethod = clazz.getMethod("startActivity", Intent.class);
+            Log.d(TAG, "ActivityViewWrapper: mStartActivityMethod: " + mStartActivityMethod);
         } catch (Exception e) {
             Log.e(TAG, "ActivityViewWrapper failed " + e);
         }

@@ -31,11 +31,14 @@ package my.darkenk.okienkatest;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
+
+import static android.content.ContentValues.TAG;
 
 public class Okienko extends RelativeLayout {
 
@@ -53,9 +56,15 @@ public class Okienko extends RelativeLayout {
         super(context);
         // LayoutInflater是用来找layout下xml布局文件
         LayoutInflater inflater = (LayoutInflater) context.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        // 动态添加控件
+        // 得到一个xml文件中的整体布局控件
         mWindow = (ViewGroup)inflater.inflate(R.layout.okienko_layout, root).findViewById(R.id.okienko_root);
+        // 给这个控件一个ID
         mWindow.setId(View.generateViewId());
+        // 创建一个新的控件
         mActivityViewWrapper = new ActivityViewWrapper(context);
+        Log.d(TAG, "Okienko: mActivityViewWrapper:" + mActivityViewWrapper);
+        // 把新的控件添加到布局控件中的小布局控件中
         ((ViewGroup)mWindow.findViewById(R.id.activity)).addView(mActivityViewWrapper.getActivityView());
 
         this.post(new Runnable() {

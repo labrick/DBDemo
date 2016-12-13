@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 22
+    compileSdkVersion 24
     buildToolsVersion "24.0.1"
 
     defaultConfig {
         applicationId "my.darkenk.okienkatest"
         minSdkVersion 19
-        targetSdkVersion 21
+        targetSdkVersion 24
     }
 
     buildTypes {
@@ -15,5 +15,8 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
+    }
+    dependencies {
+        compile 'com.android.support:appcompat-v7:24.2.1'
     }
 }

@@ -43,6 +43,7 @@ import android.media.MediaRouter;
 import android.media.MediaRouter.RouteInfo;
 import android.os.Bundle;
 //import android.os.SystemProperties;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
@@ -53,15 +54,9 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.Toast;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ExecutionException;
-
-public class OkienkaTest extends Activity {
+public class OkienkaTest extends BaseActivity {
 
     private final String TAG = "OkienkaTest";
     private ActivityViewWrapper mActivityViewWrapper;
@@ -82,6 +77,7 @@ public class OkienkaTest extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, "onCreate: ");
         super.onCreate(savedInstanceState);
         setTitle(R.string.app_long_name);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);//横屏
@@ -101,46 +97,51 @@ public class OkienkaTest extends Activity {
         mSecondaryTouch = System.getProperty("persist.secondary.touch", "ft5x06");
         Log.d(TAG, "onCreate: "+mSecondaryTouch);
 
-        button = (Button)findViewById(R.id.button);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                Intent intent = new Intent(OkienkaTest.this, MainActivity.class);
-//                startActivity(intent);
-                Intent tIntent = new Intent(OkienkaTest.this, MainActivity.class);
-                Log.v(TAG, "Primary display add " + tIntent.toString());
-                mPrimaryApp = new Okienko(OkienkaTest.this, mDesktop, tIntent);
-                Log.d(TAG, "onCreate: "+mPrimaryApp);
-            }
-        });
-        button1 = (Button)findViewById(R.id.button2);
-        button1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+//        button = (Button)findViewById(R.id.button);
+//        button.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+////                Intent intent = new Intent(OkienkaTest.this, MainActivity.class);
+////                startActivity(intent);
+////                Intent tIntent = new Intent(OkienkaTest.this, MainActivity.class);
+////                Log.v(TAG, "Primary display add " + tIntent.toString());
+//
+//                Intent tIntent1 = new Intent();
+//                ComponentName tComp = new ComponentName("com.brick.robotctrl", "com.brick.robotctrl.MainActivity");
+//                tIntent1.setComponent(tComp);
+//                mPrimaryApp = new Okienko(OkienkaTest.this, mDesktop, tIntent1);
+//                Log.d(TAG, "onCreate: "+mPrimaryApp);
+//            }
+//        });
+//        button1 = (Button)findViewById(R.id.button2);
+//        button1.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent tIntent1 = new Intent();
+//                ComponentName tComp = new ComponentName("com.brick.robotctrl", "com.brick.robotctrl.MainActivity");
+//                tIntent1.setComponent(tComp);
+////                Intent tIntent = new Intent(OkienkaTest.this, MainActivity.class);
+////                Log.v(TAG, "secondary display add " + tIntent.toString());
+//                mSecondaryApp = mPresentation.setApp(tIntent1);
+//                Log.d(TAG, "onResume: mSecondaryApp" + mSecondaryApp.toString());
+//            }
+//        });
+        // wait for openGL start; 150ms is a empiric value
+        new Handler().postDelayed(new Runnable(){
+            public void run() {
                 Intent tIntent = new Intent();
-                ComponentName tComp = new ComponentName("com.brick.robotctrl", "com.brick.robotctrl.MainActivity");
+                ComponentName tComp = new ComponentName("com.brick.expression", "com.brick.expression.MainActivity");
                 tIntent.setComponent(tComp);
 //                Intent tIntent = new Intent(OkienkaTest.this, MainActivity.class);
-//                Log.v(TAG, "secondary display add " + tIntent.toString());
-                mSecondaryApp = mPresentation.setApp(tIntent);
-                Log.d(TAG, "onResume: mSecondaryApp" + mSecondaryApp.toString());
+                mPrimaryApp = new Okienko(OkienkaTest.this, mDesktop, tIntent);
+
+                Intent tIntent1 = new Intent();
+                ComponentName tComp1 = new ComponentName("com.brick.robotctrl", "com.brick.robotctrl.MainActivity");
+                tIntent1.setComponent(tComp1);
+                mSecondaryApp = mPresentation.setApp(tIntent1);
             }
-        });
-//        Timer timer = new Timer(true);
-//        timer.schedule(queryTask, 2000, 2000);
+        }, 150);
     }
-//    TimerTask queryTask = new TimerTask() {
-//        @Override
-//        public void run() {
-////            Intent tIntent = new Intent();
-////            ComponentName tComp = new ComponentName("com.brick.robotctrl", "com.brick.robotctrl.MainActivity");
-////            tIntent.setComponent(tComp);
-//                Intent tIntent = new Intent(OkienkaTest.this, MainActivity.class);
-//                Log.v(TAG, "secondary display add " + tIntent.toString());
-//            mSecondaryApp = mPresentation.setApp(tIntent);
-//            Log.d(TAG, "onResume: mSecondaryApp" + mSecondaryApp.toString());
-//        }
-//    };
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
@@ -148,13 +149,13 @@ public class OkienkaTest extends Activity {
             if ((mSecondaryApp != null) && (event.getDevice().getName().equals(mSecondaryTouch))) {
                 // Scale resolution from primary to secondary display
 //                Log.d(TAG, "dispatchTouchEvent: 1234");
-//                float x, y;
-//                 x = event.getX();
+                float x, y;
+                 x = event.getX();
 //                Log.d(TAG, "dispatchTouchEvent: x="+x+"mscalex:"+mScaleX+"getX"+event.getX());
-//                y = event.getY();
+                y = event.getY();
 //                Log.d(TAG, "dispatchTouchEvent: y="+y+"mscaley:"+mScaleY+"getY"+event.getY());
-              //  event.setLocation(x, y);
-//                return mSecondaryApp.getView().dispatchTouchEvent(event);
+                event.setLocation(x, y);
+                return mSecondaryApp.getView().dispatchTouchEvent(event);
             }
         }
         return super.dispatchTouchEvent(event);
@@ -164,16 +165,17 @@ public class OkienkaTest extends Activity {
             new MediaRouter.SimpleCallback() {
                 @Override
                 public void onRouteSelected(MediaRouter router, int type, RouteInfo info) {
+                    Log.d(TAG, "onRouteSelected: ");
                     updatePresentation();
                 }
-
                 @Override
                 public void onRouteUnselected(MediaRouter router, int type, RouteInfo info) {
+                    Log.d(TAG, "onRouteUnselected: ");
                     updatePresentation();
                 }
-
                 @Override
                 public void onRoutePresentationDisplayChanged(MediaRouter router, RouteInfo info) {
+                    Log.d(TAG, "onRoutePresentationDisplayChanged: ");
                     updatePresentation();
                 }
             };
@@ -182,6 +184,7 @@ public class OkienkaTest extends Activity {
             new DialogInterface.OnDismissListener() {
                 @Override
                 public void onDismiss(DialogInterface dialog) {
+                    Log.d(TAG, "onDismiss: ");
                     if (dialog == mPresentation) {
                         mPresentation = null;
                     }
@@ -189,23 +192,22 @@ public class OkienkaTest extends Activity {
             };
 
     private void updatePresentation() {
+        Log.d(TAG, "updatePresentation: ");
         RouteInfo selectedRoute = mMediaRouter.getSelectedRoute(
                 MediaRouter.ROUTE_TYPE_LIVE_VIDEO);
-
         Display selectedDisplay = null;
         if (selectedRoute != null) {
             selectedDisplay = selectedRoute.getPresentationDisplay();
         }
-
         if (mPresentation != null && mPresentation.getDisplay() != selectedDisplay) {
             mPresentation.dismiss();
             mPresentation = null;
         }
-
         if (mPresentation == null && selectedDisplay != null) {
 
             // Initialise a new Presentation for the Display
             mPresentation = new SamplePresentation(this, selectedDisplay);
+            Log.d(TAG, "updatePresentation: this: "+ this.toString());
             mPresentation.setOnDismissListener(mOnDismissListener);
 
             // Try to show the presentation, this might fail if the display has
@@ -214,6 +216,7 @@ public class OkienkaTest extends Activity {
                 mPresentation.show();
             } catch (WindowManager.InvalidDisplayException ex) {
                 // Couldn't show presentation - display was already removed
+                Log.d(TAG, "updatePresentation: failed");
                 mPresentation = null;
             }
         }
@@ -221,38 +224,26 @@ public class OkienkaTest extends Activity {
 
     @Override
     protected void onResume() {
+        Log.d(TAG, "onResume: ");
         super.onResume();
         // Register a callback for all events related to live video devices
         mMediaRouter.addCallback(MediaRouter.ROUTE_TYPE_LIVE_VIDEO, mMediaRouterCallback);
         // Update the displays based on the currently active routes
         updatePresentation();
 
-//        Intent tIntent = new Intent();
-//        ComponentName tComp = new ComponentName("com.brick.robotctrl", "com.brick.robotctrl.MainActivity");
-//        tIntent.setComponent(tComp);
-//        Intent tIntent = new Intent(OkienkaTest.this, MainActivity.class);
-//        Log.v(TAG, "secondary display add " + tIntent.toString());
-//        mSecondaryApp = mPresentation.setApp(tIntent);
-//        Log.d(TAG, "onResume: mSecondaryApp" + mSecondaryApp.toString());
-//        mSecondaryApp = mPresentation.setApp(tIntent);
-//        Log.d(TAG, "onResume: mSecondaryApp" + mSecondaryApp.toString());
-//        Intent tIntent = new Intent();
-//        ComponentName tComp = new ComponentName("com.brick.robotctrl", "com.brick.robotctrl.MainActivity");
-//        tIntent.setComponent(tComp);
-        //Log.v(TAG, "Primary display add" + tIntent.toString());
-        button.callOnClick();
-        button1.performClick();
     }
 
     @Override
     protected void onPause() {
+        Log.d(TAG, "onPause: ");
         super.onPause();
         // Stop listening for changes to media routes.
-        mMediaRouter.removeCallback(mMediaRouterCallback);
+//        mMediaRouter.removeCallback(mMediaRouterCallback);
     }
 
     @Override
     protected void onStop() {
+        Log.d(TAG, "onStop: ");
         super.onStop();
         // Dismiss the presentation when the activity is not visible.
         if (mPresentation != null) {

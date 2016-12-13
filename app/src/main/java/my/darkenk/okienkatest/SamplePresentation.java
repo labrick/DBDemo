@@ -54,8 +54,8 @@ public class SamplePresentation extends Presentation {
 
         // Set the content view to the custom layout
         // Inflate a layout.
-        setContentView(R.layout.okienko);
-        mDesktop = (ViewGroup)findViewById(R.id.activity_view);
+        setContentView(R.layout.okienko_vice);
+        mDesktop = (ViewGroup)findViewById(R.id.activity_view_vice);
     }
 
     /**
